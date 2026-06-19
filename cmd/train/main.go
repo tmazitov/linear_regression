@@ -22,6 +22,9 @@ func main() {
 		fatal(err)
 	}
 
-	records := csvFile.Records()
-	fmt.Println("Records:", records)
+	csvFile.Normalize()
+	prices := csvFile.NormPrices()
+	distances := csvFile.NormDistances()
+	fmt.Println("Normalized Prices:", prices)
+	fmt.Println("Normalized Distances:", distances)
 }

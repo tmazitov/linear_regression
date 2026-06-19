@@ -8,48 +8,56 @@ import (
 )
 
 type CSVFile struct {
-	records	[][2]int
+	prices []int
+	distances []int
+
+	normPrices    *NormRecords
+	normDistances *NormRecords
 }
 
 func NewCSVFile(filePath string) (*CSVFile, error) {
 
-	records, err := parseCSVFile(filePath)
+	prices, distances, err := parseCSVFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("CSVFile error: %w", err)
 	}
 
 	return &CSVFile{
-		records: records,
+		prices: prices,
+		distances: distances,
 	}, nil
 }
 
-func (c *CSVFile) Records() [][2]int {
-	return c.records
-}
+func (c *CSVFile) Prices() 		[]int {return c.prices}
+func (c *CSVFile) Distances()	[]int {return c.distances}
+func (c *CSVFile) NormPrices() 	*NormRecords {return c.normPrices}
+func (c *CSVFile) NormDistances() *NormRecords {return c.normDistances}
 
-func parseCSVFile(filePath string) ([][2]int, error) {
+func parseCSVFile(filePath string) ([]int, []int, error) {
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("parseCSVFile error: %w", err)
+		return nil, nil, fmt.Errorf("parseCSVFile error: %w", err)
 	}
 	defer file.Close()
 
 	reader := csv.NewReader(file)
 	lines, err := reader.ReadAll()
 	if err != nil {
-		return nil, fmt.Errorf("parseCSVFile error: %w", err)
+		return nil, nil, fmt.Errorf("parseCSVFile error: %w", err)
 	}
 	
-	var records [][2]int
+	var prices []int
+	var distances []int
 	for _, line := range lines[1:] {
 		record, err := lineToRecord(line)
 		if err != nil {
-			return nil, fmt.Errorf("parseCSVFile error: %w", err)
+			return nil, nil, fmt.Errorf("parseCSVFile error: %w", err)
 		}
-		records = append(records, record)
+		prices = append(prices, record[1])
+		distances = append(distances, record[0])
 	}
-	return records, nil
+	return prices, distances, nil
 }
 
 func lineToRecord(line []string) ([2]int, error) {
@@ -65,4 +73,9 @@ func lineToRecord(line []string) ([2]int, error) {
 		return [2]int{}, fmt.Errorf("lineToRecord error: invalid price value")
 	}
 	return [2]int{distance, price}, nil
+}
+
+func (c *CSVFile) Normalize() {
+	c.normPrices = NewNormRecords(c.prices)
+	c.normDistances = NewNormRecords(c.distances)
 }
