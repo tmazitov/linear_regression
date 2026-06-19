@@ -8,8 +8,8 @@ import (
 )
 
 type CSVFile struct {
-	prices []int
-	distances []int
+	prices []float64
+	distances []float64
 
 	normPrices    *NormRecords
 	normDistances *NormRecords
@@ -28,12 +28,12 @@ func NewCSVFile(filePath string) (*CSVFile, error) {
 	}, nil
 }
 
-func (c *CSVFile) Prices() 		[]int {return c.prices}
-func (c *CSVFile) Distances()	[]int {return c.distances}
+func (c *CSVFile) Prices() 		[]float64 {return c.prices}
+func (c *CSVFile) Distances()	[]float64 {return c.distances}
 func (c *CSVFile) NormPrices() 	*NormRecords {return c.normPrices}
 func (c *CSVFile) NormDistances() *NormRecords {return c.normDistances}
 
-func parseCSVFile(filePath string) ([]int, []int, error) {
+func parseCSVFile(filePath string) ([]float64, []float64, error) {
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -47,8 +47,8 @@ func parseCSVFile(filePath string) ([]int, []int, error) {
 		return nil, nil, fmt.Errorf("parseCSVFile error: %w", err)
 	}
 	
-	var prices []int
-	var distances []int
+	var prices []float64
+	var distances []float64
 	for _, line := range lines[1:] {
 		record, err := lineToRecord(line)
 		if err != nil {
@@ -60,19 +60,19 @@ func parseCSVFile(filePath string) ([]int, []int, error) {
 	return prices, distances, nil
 }
 
-func lineToRecord(line []string) ([2]int, error) {
+func lineToRecord(line []string) ([2]float64, error) {
 	if len(line) != 2 {
-		return [2]int{}, fmt.Errorf("lineToRecord error: invalid line format")
+		return [2]float64{}, fmt.Errorf("lineToRecord error: invalid line format")
 	}
-	distance, err := strconv.Atoi(line[0])
+	distance, err := strconv.ParseFloat(line[0], 64)
 	if err != nil {
-		return [2]int{}, fmt.Errorf("lineToRecord error: invalid distance value")
+		return [2]float64{}, fmt.Errorf("lineToRecord error: invalid distance value")
 	}
-	price, err := strconv.Atoi(line[1])
+	price, err := strconv.ParseFloat(line[1], 64)
 	if err != nil {
-		return [2]int{}, fmt.Errorf("lineToRecord error: invalid price value")
+		return [2]float64{}, fmt.Errorf("lineToRecord error: invalid price value")
 	}
-	return [2]int{distance, price}, nil
+	return [2]float64{distance, price}, nil
 }
 
 func (c *CSVFile) Normalize() {

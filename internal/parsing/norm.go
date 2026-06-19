@@ -5,24 +5,24 @@ import (
 )
 
 type NormRecords struct {
-	values []int
-	min    int
-	max    int
+	values []float64
+	min    float64
+	max    float64
 }
 
-func (n *NormRecords) Values() []int { return n.values }
-func (n *NormRecords) Min() int      { return n.min }
-func (n *NormRecords) Max() int      { return n.max }
+func (n *NormRecords) Values() []float64 { return n.values }
+func (n *NormRecords) Min() float64      { return n.min }
+func (n *NormRecords) Max() float64      { return n.max }
 
-func NewNormRecords(payload []int) *NormRecords {
+func NewNormRecords(payload []float64) *NormRecords {
 
 	var (
-		min int = slices.Min(payload)
-		max int = slices.Max(payload)
+		min float64 = slices.Min(payload)
+		max float64 = slices.Max(payload)
 	)
 
 	return &NormRecords{
-		values: slices.Map(payload, func(value int) int {
+		values: slices.Map(payload, func(value float64) float64 {
 			return (value - min) / (max - min)
 		}),
 		min: min,

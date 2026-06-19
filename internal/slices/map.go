@@ -1,8 +1,8 @@
 package slices
 
-func Map(slice []int, action func(int) int) []int {
+func Map(slice []float64, action func(float64) float64) []float64 {
 
-	var another []int = make([]int, 0, len(slice))
+	var another []float64 = make([]float64, 0, len(slice))
 
 	for _, item := range slice {
 		another = append(another, action(item))
