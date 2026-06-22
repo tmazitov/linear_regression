@@ -1,6 +1,10 @@
 package model
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+)
 
 type Model struct {
 	weight *Weight
@@ -13,40 +17,72 @@ func NewModel() *Model {
 }
 
 func (m *Model) ToString() string {
-	return fmt.Sprintf("model: %f %f", m.weight.theta0, m.weight.theta1)
+	return fmt.Sprintf("linear regression: y = %f * x + %f", m.weight.K, m.weight.B)
 }
 
 type Dataset struct {
 	Prices    []float64
 	Distances []float64
+	PriceMin  float64
+	PriceMax  float64
+	DistMin   float64
+	DistMax   float64
 }
 
-func (m *Model) Train(dataset Dataset, learningRate float64, iterations int) {
+func (d Dataset) Size() int {
+	distanceLen := len(d.Distances)
+	pricesLen := len(d.Prices)
+	if distanceLen < pricesLen {
+		return distanceLen
+	}
+	return pricesLen
+}
 
-	theta0 := 0.0
-	theta1 := 0.0
-	l := len(dataset.Distances)
+func estimatePrice(distance, b, k float64) float64 {
+	return k*distance + b
+}
 
-	for outer := 0; outer < iterations; outer++ {
+func (m *Model) Train(dataset Dataset, learningRate float64, epoch int) {
+
+	b := 0.0
+	k := 0.0
+	n := dataset.Size()
+
+	for epochIndex := 0; epochIndex < epoch; epochIndex++ {
+
 		sum0, sum1 := 0.0, 0.0
 
-		fmt.Println("outer | ", outer, " | ", theta0, theta1)
-
-		for inner := 0; inner < l; inner++ {
-			diff := estimatePrice(dataset.Distances[inner], theta0, theta1) - dataset.Prices[inner]
+		for inner := 0; inner < n; inner++ {
+			diff := estimatePrice(dataset.Distances[inner], b, k) - dataset.Prices[inner]
 			sum0 += diff
 			sum1 += diff * dataset.Distances[inner]
 		}
 
-		theta0 -= learningRate * 1 / float64(l) * sum0
-		theta1 -= learningRate * 1 / float64(l) * sum1
+		b -= learningRate * 1 / float64(n) * sum0
+		k -= learningRate * 1 / float64(n) * sum1
 	}
 
-	m.weight.Update([2]float64{
-		theta0, theta1,
-	})
+	m.weight.Update(k, b, dataset.DistMin, dataset.DistMax, dataset.PriceMin, dataset.PriceMax)
 }
 
-func estimatePrice(distance, theta0, theta1 float64) float64 {
-	return theta0 + theta1*distance
+func (m *Model) EstimatePrice(distance float64) float64 {
+	w := m.weight
+	normDist := (distance - w.DistMin) / (w.DistMax - w.DistMin)
+	normPrice := w.K*normDist + w.B
+	return normPrice*(w.PriceMax-w.PriceMin) + w.PriceMin
+}
+
+func (m *Model) Weight() *Weight {
+	return m.weight
+}
+
+func (m *Model) LoadWeights(filePath string) error {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return fmt.Errorf("LoadWeights error: %w", err)
+	}
+	if err := json.Unmarshal(data, m.weight); err != nil {
+		return fmt.Errorf("LoadWeights error: %w", err)
+	}
+	return nil
 }

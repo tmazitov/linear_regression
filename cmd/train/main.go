@@ -36,7 +36,11 @@ func main() {
 	m.Train(model.Dataset{
 		Prices:    prices.Values(),
 		Distances: distances.Values(),
+		PriceMin:  prices.Min(),
+		PriceMax:  prices.Max(),
+		DistMin:   distances.Min(),
+		DistMax:   distances.Max(),
 	}, 0.5, 1000)
 
-	fmt.Println(m.ToString())
+	m.Weight().Save("./weights.json")
 }
