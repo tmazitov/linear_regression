@@ -28,6 +28,12 @@ func (w *Weight) Update(k, b, distMin, distMax, priceMin, priceMax float64) {
 	w.PriceMax = priceMax
 }
 
+func (w *Weight) LinearCoefficients() (k, b float64) {
+	k = w.K * (w.PriceMax - w.PriceMin) / (w.DistMax - w.DistMin)
+	b = w.B*(w.PriceMax-w.PriceMin) + w.PriceMin - k*w.DistMin
+	return
+}
+
 func (w *Weight) Save(filePath string) error {
 	data, err := json.MarshalIndent(w, "", "  ")
 	if err != nil {

@@ -48,11 +48,11 @@ func (m *Model) Train(dataset Dataset, learningRate float64, epoch int) {
 	k := 0.0
 	n := dataset.Size()
 
-	for epochIndex := 0; epochIndex < epoch; epochIndex++ {
+	for range epoch {
 
 		sum0, sum1 := 0.0, 0.0
 
-		for inner := 0; inner < n; inner++ {
+		for inner := range n {
 			diff := estimatePrice(dataset.Distances[inner], b, k) - dataset.Prices[inner]
 			sum0 += diff
 			sum1 += diff * dataset.Distances[inner]
