@@ -26,6 +26,7 @@ func NewPlot(points []*Point) (*Plot, error) {
 	p.Title.Text = "Linear Regression"
 	p.X.Label.Text = "Distance"
 	p.Y.Label.Text = "Price"
+	p.Legend.Top = true
 
 	s, err := plotter.NewScatter(convertPoints(points))
 	if err != nil {
