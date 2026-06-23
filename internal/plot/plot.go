@@ -1,7 +1,7 @@
 package plot
 
 import (
-	"errors"
+	"fmt"
 	"image/color"
 	"math"
 	"os"
@@ -30,7 +30,7 @@ func NewPlot(points []*Point) (*Plot, error) {
 
 	s, err := plotter.NewScatter(convertPoints(points))
 	if err != nil {
-		return nil, errors.Join(ErrPlotConfiguration, err)
+		return nil, fmt.Errorf("%v: %w", ErrPlotConfiguration, err)
 	}
 	s.GlyphStyle = draw.GlyphStyle{
 		Color:  color.RGBA{R: 74, G: 144, B: 226, A: 255},
