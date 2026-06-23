@@ -78,10 +78,8 @@ func (m *Model) Train(dataset Dataset, learningRate float64, epoch int) {
 }
 
 func (m *Model) EstimatePrice(distance float64) float64 {
-	w := m.weight
-	normDist := (distance - w.DistMin) / (w.DistMax - w.DistMin)
-	normPrice := w.K*normDist + w.B
-	return normPrice*(w.PriceMax-w.PriceMin) + w.PriceMin
+	k, b := m.weight.LinearCoefficients()
+	return estimatePrice(distance, b, k)
 }
 
 func (m *Model) LoadWeights(filePath string) error {
