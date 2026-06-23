@@ -6,7 +6,6 @@ import (
 
 	"github.com/tmazitov/linear_regression/internal/model"
 	"github.com/tmazitov/linear_regression/internal/parsing"
-	"github.com/tmazitov/linear_regression/internal/plot"
 )
 
 func fatal(err error) {
@@ -24,13 +23,14 @@ func main() {
 	if err != nil {
 		fatal(err)
 	}
-
+	
+	m := model.NewModel()
+	
 	csvFile.Normalize()
 	prices := csvFile.NormPrices()
 	distances := csvFile.NormDistances()
 
-	m := model.NewModel()
-
+	m.SetupPlot(csvFile.Distances(), csvFile.Prices())
 	m.Train(model.Dataset{
 		Prices:    prices.Values(),
 		Distances: distances.Values(),
@@ -39,22 +39,13 @@ func main() {
 		DistMin:   distances.Min(),
 		DistMax:   distances.Max(),
 	}, 0.5, 1000)
+	m.UpdateLine()
 
-	m.Weight().Save("./weights.json")
-
-	originalPrices := csvFile.Prices()
-	originalDistances := csvFile.Distances()
-
-	points := []*plot.Point{}
-	for index, price := range originalPrices {
-		points = append(points, plot.NewPoint(originalDistances[index], price))
-	}
-
-	p, err := plot.NewPlot(points)
-	if err != nil {
+	if err := m.ShowPlot(); err != nil {
 		fatal(err)
 	}
-	k, b := m.Weight().LinearCoefficients()
-	p.AddLine(k, b)
-	p.Show()
+
+	if err := m.Weight().Save("./weights.json"); err != nil {
+		fatal(err)
+	}
 }

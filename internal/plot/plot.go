@@ -1,9 +1,8 @@
 package plot
 
 import (
-	"fmt"
+	"errors"
 	"image/color"
-	"math"
 	"os"
 	"os/exec"
 
@@ -19,7 +18,7 @@ type Plot struct {
 	xMax     float64
 }
 
-func NewPlot(points []*Point) (*Plot, error) {
+func NewPlot() *Plot {
 
 	p := plot.New()
 
@@ -28,29 +27,11 @@ func NewPlot(points []*Point) (*Plot, error) {
 	p.Y.Label.Text = "Price"
 	p.Legend.Top = true
 
-	s, err := plotter.NewScatter(convertPoints(points))
-	if err != nil {
-		return nil, fmt.Errorf("%v: %w", ErrPlotConfiguration, err)
-	}
-	s.GlyphStyle = draw.GlyphStyle{
-		Color:  color.RGBA{R: 74, G: 144, B: 226, A: 255},
-		Radius: vg.Points(3),
-		Shape:  draw.CircleGlyph{},
-	}
-	p.Add(s)
-	p.Legend.Add("Points", s)
-
-	xMin, xMax := math.Inf(1), math.Inf(-1)
-	for _, pt := range points {
-		xMin = math.Min(xMin, pt.x)
-		xMax = math.Max(xMax, pt.x)
-	}
-
 	return &Plot{
 		instance: p,
-		xMin:     xMin,
-		xMax:     xMax,
-	}, nil
+		xMin:     0.0,
+		xMax:     0.0,
+	}
 }
 
 func (p *Plot) AddLine(k, b float64) {
@@ -63,6 +44,29 @@ func (p *Plot) AddLine(k, b float64) {
 	line.Width = vg.Points(2)
 	p.instance.Add(line)
 	p.instance.Legend.Add("y = kx + b", line)
+}
+
+func (p *Plot) AddPoints(points []*Point) error {
+	s, err := plotter.NewScatter(convertPoints(points))
+	if err != nil {
+		return errors.Join(ErrPlotConfiguration, err)
+	}
+	s.GlyphStyle = draw.GlyphStyle{
+		Color:  color.RGBA{R: 74, G: 144, B: 226, A: 255},
+		Radius: vg.Points(3),
+		Shape:  draw.CircleGlyph{},
+	}
+	p.instance.Add(s)
+	p.instance.Legend.Add("Points", s)
+
+	xMin, xMax := 0.0, 0.0
+	for _, pt := range points {
+		xMin = min(xMin, pt.x)
+		xMax = max(xMax, pt.x)
+	}
+	p.xMax = xMax
+	p.xMin = xMin
+	return nil
 }
 
 func convertPoints(points []*Point) plotter.XYs {
@@ -79,16 +83,18 @@ func (p *Plot) Show() error {
 		return err
 	}
 	f.Close()
+	defer os.Remove(f.Name())
 
 	if err := p.instance.Save(8*vg.Inch, 5*vg.Inch, f.Name()); err != nil {
-		os.Remove(f.Name())
 		return err
 	}
 
-	if err := exec.Command("xdg-open", f.Name()).Start(); err != nil {
-		os.Remove(f.Name())
-		return err
+	for _, viewer := range []string{"feh", "eog", "display", "gpicview"} {
+		if path, err := exec.LookPath(viewer); err == nil {
+			return exec.Command(path, f.Name()).Run()
+		}
 	}
 
-	return nil
+	return errors.New("Plot Show error: no supported image viewer found (install feh, eog, or imagemagick)")
+
 }

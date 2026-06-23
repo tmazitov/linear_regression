@@ -4,17 +4,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/tmazitov/linear_regression/internal/plot"
 )
 
 type Model struct {
 	weight *Weight
+	plot   *plot.Plot
 }
 
 func NewModel() *Model {
 	return &Model{
 		weight: NewWeight(),
+		plot:   plot.NewPlot(),
 	}
 }
+
+func (m *Model) Weight() *Weight  { return m.weight }
+func (m *Model) Plot() *plot.Plot { return m.plot }
 
 func (m *Model) ToString() string {
 	return fmt.Sprintf("linear regression: y = %f * x + %f", m.weight.K, m.weight.B)
@@ -48,11 +55,11 @@ func (m *Model) Train(dataset Dataset, learningRate float64, epoch int) {
 	k := 0.0
 	n := dataset.Size()
 
-	for i := 0; i < epoch; i++ {
+	for range epoch {
 
 		sum0, sum1 := 0.0, 0.0
 
-		for inner := 0; inner < n; inner++ {
+		for inner := range n {
 			diff := estimatePrice(dataset.Distances[inner], b, k) - dataset.Prices[inner]
 			sum0 += diff
 			sum1 += diff * dataset.Distances[inner]
@@ -70,10 +77,6 @@ func (m *Model) EstimatePrice(distance float64) float64 {
 	normDist := (distance - w.DistMin) / (w.DistMax - w.DistMin)
 	normPrice := w.K*normDist + w.B
 	return normPrice*(w.PriceMax-w.PriceMin) + w.PriceMin
-}
-
-func (m *Model) Weight() *Weight {
-	return m.weight
 }
 
 func (m *Model) LoadWeights(filePath string) error {
