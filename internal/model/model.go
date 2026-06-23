@@ -69,7 +69,12 @@ func (m *Model) Train(dataset Dataset, learningRate float64, epoch int) {
 		k -= learningRate * 1 / float64(n) * sum1
 	}
 
-	m.weight.Update(k, b, dataset.DistMin, dataset.DistMax, dataset.PriceMin, dataset.PriceMax)
+	m.weight.B = b
+	m.weight.K = k
+	m.weight.DistMin = dataset.DistMin
+	m.weight.DistMax = dataset.DistMax
+	m.weight.PriceMin = dataset.PriceMin
+	m.weight.PriceMax = dataset.PriceMax
 }
 
 func (m *Model) EstimatePrice(distance float64) float64 {

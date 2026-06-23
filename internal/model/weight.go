@@ -19,15 +19,6 @@ func NewWeight() *Weight {
 	return &Weight{}
 }
 
-func (w *Weight) Update(k, b, distMin, distMax, priceMin, priceMax float64) {
-	w.K = k
-	w.B = b
-	w.DistMin = distMin
-	w.DistMax = distMax
-	w.PriceMin = priceMin
-	w.PriceMax = priceMax
-}
-
 func (w *Weight) LinearCoefficients() (k, b float64) {
 	k = w.K * (w.PriceMax - w.PriceMin) / (w.DistMax - w.DistMin)
 	b = w.B*(w.PriceMax-w.PriceMin) + w.PriceMin - k*w.DistMin
