@@ -33,16 +33,16 @@ func main() {
 	distances := csvFile.Distances()
 	n := len(prices)
 
-	var mape float64
+	var precision float64
 	for i := range n {
 		predicted := m.EstimatePrice(distances[i])
 		diff := prices[i] - predicted
 		if diff < 0 {
 			diff = -diff
 		}
-		mape += diff / prices[i]
+		precision += diff / prices[i]
 	}
-	mape = mape / float64(n) * 100
+	precision = precision / float64(n) * 100
 
-	fmt.Printf("Precision: %.2f%%\n", 100-mape)
+	fmt.Printf("Precision: %.2f%%\n", 100-precision)
 }
