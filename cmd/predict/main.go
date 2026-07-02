@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/tmazitov/linear_regression/internal/model"
 )
@@ -14,14 +13,10 @@ func fatal(err error) {
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: predict <distance>")
-		os.Exit(1)
-	}
-
-	distance, err := strconv.ParseFloat(os.Args[1], 64)
-	if err != nil {
-		fatal(fmt.Errorf("invalid distance value: %s", os.Args[1]))
+	var distance float64
+	fmt.Print("Enter mileage: ")
+	if _, err := fmt.Scan(&distance); err != nil {
+		fatal(fmt.Errorf("invalid mileage value: %w", err))
 	}
 
 	m := model.NewModel()
